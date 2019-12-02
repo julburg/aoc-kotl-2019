@@ -23,20 +23,28 @@ class Day2KtTest {
 
         input = "2,4,4,5,99,0";
         result = day2a(input)
-        assertTrue(result.asList().equals(Arrays.asList(2,4,4,5,99,9801)))
+        assertTrue(result.asList().equals(Arrays.asList(2, 4, 4, 5, 99, 9801)))
 
         input = "1,1,1,4,99,5,6,0,99";
         result = day2a(input)
-        assertTrue(result.asList().equals(Arrays.asList(30,1,1,4,2,5,6,0,99)))
+        assertTrue(result.asList().equals(Arrays.asList(30, 1, 1, 4, 2, 5, 6, 0, 99)))
     }
 
     @Test
-    fun day1a() {
+    fun day2a() {
         val input = File("inputday2").inputStream().bufferedReader().use { it.readText() }
-        val result = day2a(input)
+        val result = day2a(input, 12, 2)
 
-        assertTrue(result == Arrays.asList(2).toIntArray())
+        assertTrue(result.get(0).equals(3101878))
     }
 
+
+    @Test
+    fun day2b() {
+        val input = File("inputday2").inputStream().bufferedReader().use { it.readText() }
+        val result = day2b(input, 19690720)
+
+        assertTrue((100 * result.first + result.second) == 8444)
+    }
 
 }
