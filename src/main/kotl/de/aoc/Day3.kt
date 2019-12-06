@@ -5,11 +5,11 @@ import kotlin.math.absoluteValue
 
 fun day3a(input: String): Int {
     val pathes = input.split("\n");
-    val firstPath = pathes.get(0).split(",").map { PathElement(Direction.valueOf(it.substring(0, 1)), it.substring(1).toInt()) }
-    val secondPath = pathes.get(1).split(",").map { PathElement(Direction.valueOf(it.substring(0, 1)), it.substring(1).toInt()) }
+    val firstPath = Path(pathes.get(0).split(",").map { PathElement(Direction.valueOf(it.substring(0, 1)), it.substring(1).toInt()) })
+    val secondpath = Path(pathes.get(1).split(",").map { PathElement(Direction.valueOf(it.substring(0, 1)), it.substring(1).toInt()) })
 
-    val coordinatesFirstPath = getCoordinates(firstPath)
-    val coordinatesSecondPath = getCoordinates(secondPath)
+    val coordinatesFirstPath = firstPath.getCoordinates()
+    val coordinatesSecondPath = secondpath.getCoordinates()
     var intersections = coordinatesFirstPath.intersect(coordinatesSecondPath).toSet();
 
     intersections = intersections.minus(Pair(0, 0))
@@ -21,51 +21,49 @@ fun day3a(input: String): Int {
 
 fun day3b(input: String): Int {
     val pathes = input.split("\n");
-    val firstPath = pathes.get(0).split(",").map { PathElement(Direction.valueOf(it.substring(0, 1)), it.substring(1).toInt()) }
-    val secondPath = pathes.get(1).split(",").map { PathElement(Direction.valueOf(it.substring(0, 1)), it.substring(1).toInt()) }
+    val firstPath = Path(pathes.get(0).split(",").map { PathElement(Direction.valueOf(it.substring(0, 1)), it.substring(1).toInt()) })
+    val secondpath = Path(pathes.get(1).split(",").map { PathElement(Direction.valueOf(it.substring(0, 1)), it.substring(1).toInt()) })
 
-    val coordinatesFirstPath = getCoordinates(firstPath)
-    val coordinatesSecondPath = getCoordinates(secondPath)
+    val coordinatesFirstPath = firstPath.getCoordinates()
+    val coordinatesSecondPath = secondpath.getCoordinates()
     var intersections = coordinatesFirstPath.intersect(coordinatesSecondPath).toSet();
     intersections = intersections.minus(Pair(0, 0))
 
-    val firstIntersectionFirstPath = getFirstIntersection(coordinatesFirstPath,intersections)
-    val firstIntersectionSecondPath = getFirstIntersection(coordinatesSecondPath,intersections)
-
-    val coordinatesFirstPathWithoutCircle = withoutCircles(coordinatesFirstPath);
-    val coordinatesSecondPathWithoutCircle = withoutCircles(coordinatesSecondPath);
-    val indexOfFirstPath = coordinatesFirstPath.indexOf(firstIntersectionFirstPath);
-    val indexOfSecondPath = coordinatesSecondPath.indexOf(firstIntersectionSecondPath);
-    println(indexOfFirstPath +  indexOfSecondPath);
-
-    return indexOfFirstPath + indexOfSecondPath
+    return getSmallestWayToIntersection(coordinatesFirstPath, coordinatesSecondPath, intersections)
 }
 
-fun getFirstIntersection(coordinatesFirstPath: List<Pair<Int, Int>>, intersections: Set<Pair<Int, Int>>): Pair<Int,Int>{
-    val indexOfFirst = intersections.map { coordinatesFirstPath.indexOf(it) }.min()!!
-    return coordinatesFirstPath.get(indexOfFirst);
+fun getSmallestWayToIntersection(coordinatesFirstPath: List<Pair<Int, Int>>, coordinatesSecondPath: List<Pair<Int, Int>>, intersections: Set<Pair<Int, Int>>): Int {
+
+    return intersections.map { coordinatesFirstPath.indexOf(it) + coordinatesSecondPath.indexOf(it) }.min()!!;
 }
 
-fun withoutCircles(coordinates: List<Pair<Int, Int>>): List<Pair<Int, Int>> {
-    val duplicates = coordinates.groupBy { it }.filter { it.value.size > 1 }.keys.toSet();
-    var withoutCircles = coordinates.toMutableList();
-    for (duplicate in duplicates) {
-        val firstIndexOf = withoutCircles.indexOf(duplicate);
-        val lastIndexOf = withoutCircles.lastIndexOf(duplicate);
-        withoutCircles = withoutCircles.subtract(withoutCircles.subList(firstIndexOf, lastIndexOf + 1)).toMutableList();
+
+class Path(pathElements: List<PathElement>) {
+    var pathElements: List<PathElement> = pathElements
+
+    fun getCoordinates(): List<Pair<Int, Int>> {
+        var coordinates = Pair(0, 0)
+        val points = ArrayList<Pair<Int, Int>>();
+
+        for (pathElement in pathElements) {
+            points.addAll(pathElement.getPoints(coordinates));
+            coordinates = pathElement.getNewCoordinates(coordinates);
+        }
+        return points
     }
-    return withoutCircles
-}
 
-private fun getCoordinates(firstPath: List<PathElement>): List<Pair<Int, Int>> {
-    var coordinates = Pair(0, 0)
-    val points = ArrayList<Pair<Int, Int>>();
+    fun getCoordinatesWithoutLastPoint(): List<Pair<Int, Int>> {
+        var coordinates = Pair(0, 0)
+        val points = ArrayList<Pair<Int, Int>>();
 
-    for (pathElement in firstPath) {
-        points.addAll(pathElement.getPoints(coordinates));
-        coordinates = pathElement.getNewCoordinates(coordinates);
+        for (pathElement in pathElements) {
+            val points = pathElement.getPoints(coordinates)
+           //points.addAll(points);
+            coordinates = pathElement.getNewCoordinates(coordinates);
+        }
+        return points
     }
-    return points
+
 }
 
 class PathElement(direction: Direction, count: Int) {
@@ -87,6 +85,7 @@ class PathElement(direction: Direction, count: Int) {
     }
 
 }
+
 
 enum class Direction {
     R {
@@ -110,7 +109,7 @@ enum class Direction {
 
         override fun calculatePoints(startpoint: Pair<Int, Int>, steps: Int): ArrayList<Pair<Int, Int>> {
             val points = ArrayList<Pair<Int, Int>>()
-            for (xCoordinate in (startpoint.first - steps-1)..startpoint.first ) {
+            for (xCoordinate in (startpoint.first - steps+1)..startpoint.first) {
                 points.add(Pair(xCoordinate, startpoint.second))
             }
             points.reverse()
@@ -138,7 +137,7 @@ enum class Direction {
 
         override fun calculatePoints(startpoint: Pair<Int, Int>, steps: Int): ArrayList<Pair<Int, Int>> {
             val points = ArrayList<Pair<Int, Int>>()
-            for (yCoordinate in (startpoint.second - steps-1)..startpoint.second) {
+            for (yCoordinate in (startpoint.second - steps +1)..startpoint.second) {
                 points.add(Pair(startpoint.first, yCoordinate))
             }
             points.reverse()
@@ -148,4 +147,15 @@ enum class Direction {
     abstract fun calculatePoints(startpoint: Pair<Int, Int>, steps: Int): ArrayList<Pair<Int, Int>>
 
     abstract fun newCoordinates(startpoint: Pair<Int, Int>, steps: Int): Pair<Int, Int>
+}
+
+fun withoutCircles(coordinates: List<Pair<Int, Int>>): List<Pair<Int, Int>> {
+    val duplicates = coordinates.groupBy { it }.filter { it.value.size > 1 }.keys.toSet();
+    var withoutCircles = coordinates.toMutableList();
+    for (duplicate in duplicates) {
+        val firstIndexOf = withoutCircles.indexOf(duplicate);
+        val lastIndexOf = withoutCircles.lastIndexOf(duplicate);
+        withoutCircles = withoutCircles.subtract(withoutCircles.subList(firstIndexOf, lastIndexOf + 1)).toMutableList();
+    }
+    return withoutCircles
 }
