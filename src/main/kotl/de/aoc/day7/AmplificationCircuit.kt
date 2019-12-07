@@ -8,41 +8,28 @@ import com.marcinmoskala.math.permutations
 class AmplificationCircuit(private var codeList: IntArray) {
 
     fun run(): Int {
-        return setOf(0, 1, 2, 3, 4).permutations().map { runForPhase(it, 0) }.max()!!
-
+        return setOf(5, 6, 7, 8, 9).permutations().map { runForPhase(it) }.max()!!
     }
 
-    fun runForPhase(phaseSetting: List<Int>, input: Int): Int {
-        var output = input
-        for (phase in phaseSetting) {
-            output = IntCodeProgram(codeList.copyOf(), arrayListOf(phase, output)).run().value
+
+    fun runForPhase(phaseSetting: List<Int>): Int {
+        val ampA = IntCodeProgram("AmpA", codeList.copyOf(), arrayListOf(phaseSetting.get(0), 0))
+        val ampB = IntCodeProgram("AmpB", codeList.copyOf(), arrayListOf(phaseSetting.get(1)))
+        val ampC = IntCodeProgram("AmpC", codeList.copyOf(), arrayListOf(phaseSetting.get(2)))
+        val ampD = IntCodeProgram("AmpD", codeList.copyOf(), arrayListOf(phaseSetting.get(3)))
+        val ampE = IntCodeProgram("AmpE", codeList.copyOf(), arrayListOf(phaseSetting.get(4)))
+        val amplifiers = arrayListOf(ampA, ampB, ampC, ampD, ampE)
+
+        var output = arrayListOf<Int>()
+        var currentAmplifier = 0
+
+        while (amplifiers.filter { it.isTerminated == false }.isNotEmpty()) {
+            output = amplifiers.get(currentAmplifier).run(output).values
+            currentAmplifier = (currentAmplifier + 1) % 5
         }
-        return output
+        return ampE.lastOutputValue
     }
-
-    fun runWithFeedbackLoop(): Int {
-        val permutations = setOf(5, 6, 7, 8, 9).permutations()
-
-        val outputs = ArrayList<Int>()
-        var output = 0
-        for (permutation in permutations) {
-            output = runForPhase(permutation, output)
-            outputs.add(output)
-        }
-
-        return outputs.max()!!
-    }
-
-    fun runForPermutation(permutation: List<Int>, outputs: ArrayList<Int>): Int {
-        var output = 0
-        var firstRun = true
-        while (output != 139629729) {
-            output = runForPhase(permutation, output)
-            outputs.add(output)
-            firstRun = false
-        }
-        return output
-    }
-
-
 }
+
+
+

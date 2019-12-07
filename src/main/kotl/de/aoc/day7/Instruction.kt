@@ -1,6 +1,6 @@
 package de.aoc.day7
 
-import de.aoc.day7.IntCodeProgram.OpCode
+import de.aoc.day7.IntCodeProgram.*
 
 /**
  * @author  Julia Burgard - burgard@synyx.de
@@ -72,7 +72,7 @@ class InputInstructionInstruction(input: IntArray, val opCode: OpCode, val input
 class TerminateInstruction() : Instruction {
 
     override fun run(codeList: IntArray, instructionPointer: Int): Int {
-        throw UnsupportedOperationException("Programm terminated" + this)
+        throw ProgramTerminatedException("Programm terminated")
 
     }
 }
@@ -110,24 +110,29 @@ fun getInstruction(opCode: OpCode, input: IntArray, inputValues: InputValues, ou
     }
 }
 
-class InputValues(val firstInputValue: Int, private val lastOutputValue: OutputValue) {
-    private var firstInputValueUsed = false;
+class InputValues(initialInputValues: ArrayList<Int>) {
+    private val inputValues = initialInputValues
 
     fun getNextValue(): Int {
-        if (firstInputValueUsed == true) {
-            return lastOutputValue.value
+        if (inputValues.isEmpty()) {
+            throw WaitingOnInputException("Input Values empty");
         }
-        firstInputValueUsed=true
-        return firstInputValue
+        val value = inputValues.get(0)
+        inputValues.removeAt(0)
+        return value
+    }
+
+    fun addInputValues(values: ArrayList<Int>) {
+        inputValues.addAll(values)
     }
 
 }
 
-class OutputValue(initValue : Int) {
-    var value=initValue
+class OutputValue() {
+    var values = ArrayList<Int>()
 
     fun setOutputValue(outputValue: Int) {
-        value = outputValue
+        values.add(outputValue)
     }
 }
 

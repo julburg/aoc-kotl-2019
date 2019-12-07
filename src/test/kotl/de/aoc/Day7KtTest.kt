@@ -1,7 +1,6 @@
 package de.aoc
 
 import de.aoc.day7.AmplificationCircuit
-import de.aoc.day7.IntCodeProgram
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -10,18 +9,6 @@ import kotlin.test.assertEquals
  * @author  Julia Burgard - burgard@synyx.de
  */
 class Day7KtTest {
-
-    @Test
-    fun day5StillWorks() {
-        val input = File("inputday5").inputStream().bufferedReader().use { it.readText() }
-        val codeList = input.split(",").map(String::toInt).toIntArray()
-        val inputValues = arrayListOf(5)
-
-        val intCodeProgram = IntCodeProgram(codeList, inputValues)
-        val outputValue = intCodeProgram.run();
-
-        assertEquals(13758663, outputValue.value)
-    }
 
     @Test
     fun day7aExampleOne() {
@@ -65,22 +52,12 @@ class Day7KtTest {
     }
 
     @Test
-    fun day7bExampleOne() {
-        val codeList = "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5".split(",").map(String::toInt).toIntArray()
-
-        val amplificationCircuit = AmplificationCircuit(codeList)
-        val outputValue = amplificationCircuit.runWithFeedbackLoop();
-
-        assertEquals(139629729, outputValue)
-    }
-    @Test
     fun day7bExampleOne2() {
         val codeList = "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5".split(",").map(String::toInt).toIntArray()
 
         val amplificationCircuit = AmplificationCircuit(codeList)
-        val outputValue = amplificationCircuit.runForPermutation(arrayListOf(5, 6, 7, 8, 9), arrayListOf());
+        val outputValue = amplificationCircuit.run();
         assertEquals(139629729, outputValue)
-
     }
 
     @Test
@@ -94,14 +71,14 @@ class Day7KtTest {
         assertEquals(18216, outputValue)
     }
 
-    @Test
+     @Test
     fun day7b() {
         val codeList = File("inputday7").inputStream().bufferedReader().use { it.readText() }.split(",").map(String::toInt).toIntArray()
 
         val amplificationCircuit = AmplificationCircuit(codeList)
-        val outputValue = amplificationCircuit.runWithFeedbackLoop();
+        val outputValue = amplificationCircuit.run();
 
-        assertEquals(0, outputValue)
+        assertEquals(63103596, outputValue)
     }
 
 }
