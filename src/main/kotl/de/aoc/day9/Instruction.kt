@@ -9,90 +9,91 @@ import de.aoc.day9.IntCodeProgram.*
 
 interface Instruction {
 
-    fun run(codeList: IntArray, instructionPointer: Int): Int
+    fun run(codeList: LongArray, instructionPointer: Int): Int
 
 }
 
-class CalculateInstruction(input: IntArray, val opCode: OpCode, val calculate: (IntArray, ParameterI, ParameterI) -> Int, val valueX: ValueX) : Instruction {
-    var firstParameter: ParameterI = getParameter(getModeFirstValue(input.get(0)), input.get(1), valueX)
-    var secondParameter: ParameterI = getParameter(getModeSecondValue(input.get(0)), input.get(2), valueX)
-    var replacePosition: Int = input.get(3)
+class CalculateInstruction(input: LongArray, val opCode: OpCode, val calculate: (LongArray, ParameterI, ParameterI) -> Long, relativeBase: RelativeBase) : Instruction {
+    var firstParameter: ParameterI = getParameter(getModeFirstValue(input.get(0).toInt()), input.get(1), relativeBase)
+    var secondParameter: ParameterI = getParameter(getModeSecondValue(input.get(0).toInt()), input.get(2), relativeBase)
+    var replaceParameter: ParameterI = getParameter(getModeThirdValue(input.get(0).toInt()), input.get(3), relativeBase)
 
-    override fun run(codeList: IntArray, instructionPointer: Int): Int {
-        codeList.set(replacePosition, calculate(codeList, firstParameter, secondParameter))
+    override fun run(codeList: LongArray, instructionPointer: Int): Int {
+        codeList.set(replaceParameter.getPosition(), calculate(codeList, firstParameter, secondParameter))
         return instructionPointer + opCode.instructionDigits
     }
 }
 
-class JumpInstruction(input: IntArray, val opCode: OpCode, val shouldJump: (IntArray, ParameterI) -> Boolean, val valueX: ValueX) : Instruction {
-    var firstParameter: ParameterI = getParameter(getModeFirstValue(input.get(0)), input.get(1), valueX)
-    var secondParameter: ParameterI = getParameter(getModeSecondValue(input.get(0)), input.get(2), valueX)
+class JumpInstruction(input: LongArray, val opCode: OpCode, val shouldJump: (LongArray, ParameterI) -> Boolean, relativeBase: RelativeBase) : Instruction {
+    var firstParameter: ParameterI = getParameter(getModeFirstValue(input.get(0).toInt()), input.get(1), relativeBase)
+    var secondParameter: ParameterI = getParameter(getModeSecondValue(input.get(0).toInt()), input.get(2), relativeBase)
 
-    override fun run(codeList: IntArray, instructionPointer: Int): Int {
+    override fun run(codeList: LongArray, instructionPointer: Int): Int {
         if (shouldJump(codeList, firstParameter)) {
-            return secondParameter.getValue(codeList)
+            return secondParameter.getValue(codeList).toInt()
         }
         return instructionPointer + opCode.instructionDigits
     }
 }
 
 
-class CompareInstruction(input: IntArray, val opCode: OpCode, val compare: (IntArray, ParameterI, ParameterI) -> Boolean, val valueX: ValueX) : Instruction {
-    var firstParameter: ParameterI = getParameter(getModeFirstValue(input.get(0)), input.get(1), valueX)
-    var secondParameter: ParameterI = getParameter(getModeSecondValue(input.get(0)), input.get(2), valueX)
-    var replacePosition: Int = input.get(3)
+class CompareInstruction(var input: LongArray, val opCode: OpCode, val compare: (LongArray, ParameterI, ParameterI) -> Boolean, val relativeBase: RelativeBase) : Instruction {
+    var firstParameter: ParameterI = getParameter(getModeFirstValue(input.get(0).toInt()), input.get(1), relativeBase)
+    var secondParameter: ParameterI = getParameter(getModeSecondValue(input.get(0).toInt()), input.get(2), relativeBase)
+    var replaceParameter: ParameterI = getParameter(getModeThirdValue(input.get(0).toInt()), input.get(3), relativeBase)
 
-    override fun run(codeList: IntArray, instructionPointer: Int): Int {
+    override fun run(codeList: LongArray, instructionPointer: Int): Int {
         if (compare(codeList, firstParameter, secondParameter)) {
-            codeList.set(replacePosition, 1)
+            codeList.set(replaceParameter.getPosition(), 1)
         } else {
-            codeList.set(replacePosition, 0)
+            codeList.set(replaceParameter.getPosition(), 0)
         }
         return instructionPointer + opCode.instructionDigits
     }
 }
 
-class OutputInstructionInstruction(input: IntArray, val opCode: OpCode, val outputValue: OutputValue) : Instruction {
-    var outputPosition = input.get(1)
+class OutputInstructionInstruction(val input: LongArray, val opCode: OpCode, val outputValue: OutputValue, relativeBase: RelativeBase) : Instruction {
+    var outputParameter: ParameterI = getParameter(getModeFirstValue(input.get(0).toInt()), input.get(1), relativeBase)
 
-    override fun run(codeList: IntArray, instructionPointer: Int): Int {
-        outputValue.setOutputValue(codeList.get(outputPosition))
+    override fun run(codeList: LongArray, instructionPointer: Int): Int {
+        outputValue.setOutputValue(outputParameter.getValue(codeList))
         return instructionPointer + opCode.instructionDigits
     }
 }
 
-class InputInstructionInstruction(input: IntArray, val opCode: OpCode, val inputValues: InputValues) : Instruction {
-    var inputPosition = input.get(1)
+class InputInstructionInstruction(var input: LongArray, val opCode: OpCode, val inputValues: InputValues, var relativeBase: RelativeBase) : Instruction {
+    var inputParameter: ParameterI = getParameter(getModeFirstValue(input.get(0).toInt()), input.get(1), relativeBase)
 
-    override fun run(codeList: IntArray, instructionPointer: Int): Int {
-        codeList.set(inputPosition, inputValues.getNextValue())
+    override fun run(codeList: LongArray, instructionPointer: Int): Int {
+        codeList.set(inputParameter.getPosition(), inputValues.getNextValue())
         return instructionPointer + opCode.instructionDigits
     }
 }
 
-class OperationXInstruction(input: IntArray, val opCode: OpCode, val inputValues: InputValues, val valueX: ValueX) : Instruction {
-    var increaseValue = input.get(1)
+class RelativeBaseOffsetInstruction(var input: LongArray, val opCode: OpCode, val inputValues: InputValues, val relativeBase: RelativeBase) : Instruction {
+    var inputParameter: ParameterI = getParameter(getModeFirstValue(input.get(0).toInt()), input.get(1), relativeBase)
 
-    override fun run(codeList: IntArray, instructionPointer: Int): Int {
-        valueX.increaseBy(increaseValue)
+    override fun run(codeList: LongArray, instructionPointer: Int): Int {
+        val value = inputParameter.getValue(codeList)
+        relativeBase.increaseBy(value)
         return instructionPointer + opCode.instructionDigits
     }
 }
 
 class TerminateInstruction() : Instruction {
 
-    override fun run(codeList: IntArray, instructionPointer: Int): Int {
+    override fun run(codeList: LongArray, instructionPointer: Int): Int {
         throw ProgramTerminatedException("Programm terminated")
 
     }
 }
 
-fun getParameter(mode: Int, value: Int, valueX: ValueX): ParameterI {
+fun getParameter(mode: Int, value: Long, relativeBase: RelativeBase): ParameterI {
 
-    when (mode) {
-        0 -> return ParameterPosition(value)
-        1 -> return ParameterImmediate(value)
-        2 -> return ParameterX(value, valueX)
+    return when (mode) {
+        0 -> ParameterPositionMode(value)
+        1 -> ParameterImmediateMode(value)
+        2 -> ParameterRelativeMode(value, relativeBase)
         else -> {
             throw Exception("Parameter mode not known")
         }
@@ -102,29 +103,45 @@ fun getParameter(mode: Int, value: Int, valueX: ValueX): ParameterI {
 
 interface ParameterI {
 
-    fun getValue(codeList: IntArray): Int
+    fun getValue(codeList: LongArray): Long
+
+    fun getPosition(): Int
 
 }
 
-class ParameterImmediate(private var value: Int) : ParameterI {
-
-    override fun getValue(codeList: IntArray): Int {
+class ParameterImmediateMode(private var value: Long) : ParameterI {
+    override fun getValue(codeList: LongArray): Long {
         return value;
     }
+
+    override fun getPosition(): Int {
+        throw UnsupportedOperationException("No Position supported in immediate mode");
+    }
+
 }
 
-class ParameterPosition(private var value: Int) : ParameterI {
+class ParameterPositionMode(private var value: Long) : ParameterI {
 
-    override fun getValue(codeList: IntArray): Int {
-        return codeList.get(value);
+    override fun getValue(codeList: LongArray): Long {
+        return codeList.get(getPosition());
     }
+
+    override fun getPosition(): Int {
+        return value.toInt()
+    }
+
 }
 
-class ParameterX(private var value: Int, var valueX: ValueX) : ParameterI {
+class ParameterRelativeMode(private var value: Long, var relativeBase: RelativeBase) : ParameterI {
 
-    override fun getValue(codeList: IntArray): Int {
-        return codeList.get(value + valueX.valueX);
+    override fun getValue(codeList: LongArray): Long {
+        return codeList.get(getPosition())
     }
+
+    override fun getPosition(): Int {
+        return relativeBase.getPosition(value.toInt())
+    }
+
 }
 
 fun getModeFirstValue(value: Int): Int {
@@ -134,26 +151,29 @@ fun getModeFirstValue(value: Int): Int {
 fun getModeSecondValue(value: Int): Int {
     return ((Math.abs(value) / 100) % 100) / 10
 }
+fun getModeThirdValue(value: Int): Int {
+    return ((Math.abs(value) / 100) % 1000) / 100
+}
 
-fun getInstruction(opCode: OpCode, input: IntArray, inputValues: InputValues, outputValue: OutputValue, valueX: ValueX): Instruction {
+fun getInstruction(opCode: OpCode, input: LongArray, inputValues: InputValues, outputValue: OutputValue, relativeBase: RelativeBase): Instruction {
     return when (opCode) {
-        OpCode.SUM -> CalculateInstruction(input, opCode, sum(), valueX)
-        OpCode.MULTIPLY -> CalculateInstruction(input, opCode, multiply(), valueX)
-        OpCode.JUMPIFTRUE -> JumpInstruction(input, opCode, shouldJumpIfNotZero(), valueX)
-        OpCode.JUMPIFFALSE -> JumpInstruction(input, opCode, shouldJumpIfZero(), valueX)
-        OpCode.LESSTHAN -> CompareInstruction(input, opCode, isLessThan(), valueX)
-        OpCode.EQUALS -> CompareInstruction(input, opCode, isEqualTo(), valueX)
-        OpCode.OUTPUT -> OutputInstructionInstruction(input, opCode, outputValue)
-        OpCode.INPUT -> InputInstructionInstruction(input, opCode, inputValues)
-        OpCode.OPERATIONX -> OperationXInstruction(input, opCode, inputValues, valueX)
+        OpCode.SUM -> CalculateInstruction(input, opCode, sum(), relativeBase)
+        OpCode.MULTIPLY -> CalculateInstruction(input, opCode, multiply(), relativeBase)
+        OpCode.JUMPIFTRUE -> JumpInstruction(input, opCode, shouldJumpIfNotZero(), relativeBase)
+        OpCode.JUMPIFFALSE -> JumpInstruction(input, opCode, shouldJumpIfZero(), relativeBase)
+        OpCode.LESSTHAN -> CompareInstruction(input, opCode, isLessThan(), relativeBase)
+        OpCode.EQUALS -> CompareInstruction(input, opCode, isEqualTo(), relativeBase)
+        OpCode.OUTPUT -> OutputInstructionInstruction(input, opCode, outputValue, relativeBase)
+        OpCode.INPUT -> InputInstructionInstruction(input, opCode, inputValues, relativeBase)
+        OpCode.RELATIVEBASEOFFSET -> RelativeBaseOffsetInstruction(input, opCode, inputValues, relativeBase)
         OpCode.TERMINATE -> TerminateInstruction()
     }
 }
 
-class InputValues(initialInputValues: ArrayList<Int>) {
+class InputValues(initialInputValues: ArrayList<Long>) {
     private val inputValues = initialInputValues
 
-    fun getNextValue(): Int {
+    fun getNextValue(): Long {
         if (inputValues.isEmpty()) {
             throw WaitingOnInputException("Input Values empty");
         }
@@ -162,23 +182,19 @@ class InputValues(initialInputValues: ArrayList<Int>) {
         return value
     }
 
-    fun addInputValues(values: ArrayList<Int>) {
-        inputValues.addAll(values)
-    }
-
 }
 
 class OutputValue() {
-    var values = ArrayList<Int>()
+    var values = ArrayList<Long>()
 
-    fun setOutputValue(outputValue: Int) {
+    fun setOutputValue(outputValue: Long) {
         values.add(outputValue)
     }
 }
 
-private fun shouldJumpIfZero() = { codeList: IntArray, ParameterI: ParameterI -> ParameterI.getValue(codeList) == 0 }
-private fun shouldJumpIfNotZero() = { codeList: IntArray, ParameterI: ParameterI -> ParameterI.getValue(codeList) != 0 }
-private fun isEqualTo() = { codeList: IntArray, firstParameterI: ParameterI, secondParameterI: ParameterI -> firstParameterI.getValue(codeList) == secondParameterI.getValue(codeList) }
-private fun isLessThan() = { codeList: IntArray, firstParameterI: ParameterI, secondParameterI: ParameterI -> firstParameterI.getValue(codeList) < secondParameterI.getValue(codeList) }
-private fun multiply() = { codeList: IntArray, firstParameterI: ParameterI, secondParameterI: ParameterI -> firstParameterI.getValue(codeList) * secondParameterI.getValue(codeList) }
-private fun sum() = { codeList: IntArray, firstParameterI: ParameterI, secondParameterI: ParameterI -> firstParameterI.getValue(codeList) + secondParameterI.getValue(codeList) }
+private fun shouldJumpIfZero() = { codeList: LongArray, ParameterI: ParameterI -> ParameterI.getValue(codeList) == 0L }
+private fun shouldJumpIfNotZero() = { codeList: LongArray, ParameterI: ParameterI -> ParameterI.getValue(codeList) != 0L }
+private fun isEqualTo() = { codeList: LongArray, firstParameterI: ParameterI, secondParameterI: ParameterI -> firstParameterI.getValue(codeList) == secondParameterI.getValue(codeList) }
+private fun isLessThan() = { codeList: LongArray, firstParameterI: ParameterI, secondParameterI: ParameterI -> firstParameterI.getValue(codeList) < secondParameterI.getValue(codeList) }
+private fun multiply() = { codeList: LongArray, firstParameterI: ParameterI, secondParameterI: ParameterI -> firstParameterI.getValue(codeList) * secondParameterI.getValue(codeList) }
+private fun sum() = { codeList: LongArray, firstParameterI: ParameterI, secondParameterI: ParameterI -> firstParameterI.getValue(codeList) + secondParameterI.getValue(codeList) }
