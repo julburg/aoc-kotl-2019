@@ -14,10 +14,26 @@ class Day14KtTest {
     fun day14a() {
         val reactionsInput = File("inputDay14").inputStream().bufferedReader().use { it.readText() }
 
-        val amountOfOre = day14a(reactionsInput)
-        assertEquals(0, amountOfOre)
+        val amountOfOre = day14two(reactionsInput)
+        assertEquals(598038, amountOfOre)
     }
 
+    @Test
+    fun day14b() {
+        println(82892753-75120192)
+        println(1000000000000L / 13312L)
+        println(1000000000000000000L / 13312L)
+        println(75120192307692*13312L+4096)
+
+        var ore = 1000000000000L
+        var res = ore.toDouble() % 13312L
+        println(82892753L * 13312L)
+        println(1103468327936L - ore)
+        println(5586022L * 180697L)
+        println(2210736L * 460664L)
+
+
+    }
 
     @Test
     fun day14aExampleOne() {
@@ -28,8 +44,20 @@ class Day14KtTest {
                 "7 A, 1 D => 1 E\n" +
                 "7 A, 1 E => 1 FUEL"
 
-        val amountOfOre = day14a(reactionsInput)
+        val amountOfOre = day14two(reactionsInput)
         assertEquals(31, amountOfOre)
+    }
+
+    @Test
+    fun test() {
+        val reactionsInput = "10 ORE => 10 A\n" +
+                "4 A => 10 D\n" +
+                "17 D => 1 F\n" +
+                "2 D, 1 F => 1 E\n" +
+                "1 D, 1 E => 1 FUEL"
+
+        val amountOfOre = day14two(reactionsInput)
+        assertEquals(10, amountOfOre)
     }
 
 
@@ -41,10 +69,14 @@ class Day14KtTest {
                 "3 A, 4 B => 1 AB\n" +
                 "5 B, 7 C => 1 BC\n" +
                 "4 C, 1 A => 1 CA\n" +
-                "2 AB, 3 BC, 4 CA => 1 FUEL"
+                "2 AB, 3 BC, 4 CA => 2 FUEL"
 
-        val amountOfOre = day14a(reactionsInput)
+        val amountOfOre = day14two(reactionsInput)
         assertEquals(165, amountOfOre)
+        //323 158
+        //480 157
+        //638 158
+        //796 158
     }
 
 
@@ -60,7 +92,11 @@ class Day14KtTest {
                 "165 ORE => 2 GPVTF\n" +
                 "3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT"
 
-        val amountOfOre = day14a(reactionsInput)
+        val amountOfOre = day14two(reactionsInput)
+        //1205354336
+        //1584077485
+        println("huhu" + (25590 - 13312))
+        println(37025 - 25590)
         assertEquals(13312, amountOfOre)
     }
 
@@ -80,7 +116,7 @@ class Day14KtTest {
                 "1 VJHF, 6 MNCFX => 4 RFSQX\n" +
                 "176 ORE => 6 VJHF"
 
-        val amountOfOre = day14a(reactionsInput)
+        val amountOfOre = day14two(reactionsInput)
         assertEquals(180697, amountOfOre)
     }
 
@@ -105,7 +141,7 @@ class Day14KtTest {
                 "7 XCVML => 6 RJRHP\n" +
                 "5 BHXH, 4 VRPVC => 5 LTCX"
 
-        val amountOfOre = day14a(reactionsInput)
+        val amountOfOre = day14two(reactionsInput)
         assertEquals(2210736, amountOfOre)
     }
 

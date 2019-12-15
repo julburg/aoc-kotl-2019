@@ -1,61 +1,64 @@
 package de.aoc
 
-const val fuelIdentifier: String = "FUEL"
+import java.lang.Math.ceil
+
 const val oreIdentifier: String = "ORE"
 
-fun day14a(reactionsInput: String): Int {
+
+fun day14two(reactionsInput: String): Int {
     val reactions = parseReactions(reactionsInput)
-    val chemicalsForOre = getChemicalsForOre(Chemical(1, fuelIdentifier), reactions, hashMapOf())
-    return chemicalsForOre.map { amountOre(it.key, it.value, reactions) }.sum()
-}
+    val usage = HashMap<String, Int>()
 
-private fun amountOre(name: String, amount: Int, reactions: ArrayList<Reaction>): Int {
-    val reactionOre = reactions.filter { it.outputChemical.name.equals(name) }.first()
+    val outputChemicals = reactions.map { it.outputChemical.name }
 
-    return amountOre(amount, reactionOre)
-}
+    while (!usage.keys.containsAll(outputChemicals)) {
+        val withoutUnsolvedUsage = reactions.filter {
+            reactionsWithInputOf(it.outputChemical, reactions)
+                    .none { !usage.containsKey(it) }
+        }.filter { !usage.containsKey(it.outputChemical.name) }
 
-fun getChemicalsForOre(chemical: Chemical, reactions: List<Reaction>, result: HashMap<String, Int>): Map<String, Int> {
-    val reaction = reactions.first { it.outputChemical.name.equals(chemical.name) }
-    val numberOfReactions = numberOfReactions(chemical.amount, reaction)
-
-    if (hasOreChemical(reaction)) {
-        val value = chemical.amount
-        if (result.contains(reaction.outputChemical.name)) {
-            result.put(reaction.outputChemical.name, result.get(reaction.outputChemical.name)!! + value)
-        } else {
-            result.put(reaction.outputChemical.name, value)
+        for (reactionToSolve in withoutUnsolvedUsage) {
+            val chemicalToSolve = reactionToSolve.outputChemical
+            val reactionsWithUsageOfReaction = reactions.filter { it.inputChemicals.map { it.name }.contains(chemicalToSolve.name) }
+            if (reactionsWithUsageOfReaction.size == 0) {
+                usage.put(chemicalToSolve.name, chemicalToSolve.amount)
+            } else {
+                val sum = reactionsWithUsageOfReaction.map { it.inputChemicals.filter { it.name.equals(chemicalToSolve.name) }.first().amount * usage.get(it.outputChemical.name)!! }.sum()
+                val result = ceil(sum.toDouble() / chemicalToSolve.amount.toDouble()).toInt()
+                usage.put(chemicalToSolve.name, result)
+            }
         }
-        return result
     }
 
-    for (inputChemical in reaction.inputChemicals) {
-        getChemicalsForOre(Chemical(inputChemical.amount * numberOfReactions, inputChemical.name), reactions, result)
-    }
+    val oreReactions = reactions.filter { it.inputChemicals.map { it.name }.contains(oreIdentifier) }
+    return oreReactions.map { usage.get(it.outputChemical.name)!! * it.inputChemicals.first().amount }.sum()
 
-    return result
 }
+
+
+private fun reactionsWithInputOf(outputChemical: Chemical, reactions: List<Reaction>): List<String> {
+    val filter = reactions.filter { it.inputChemicals.map { it.name }.contains(outputChemical.name) }
+    return filter.map { it.outputChemical.name }
+}
+
 
 fun amountOre(amount: Int, reaction: Reaction): Int {
 
-    return numberOfReactions(amount, reaction) * reaction.inputChemicals.get(0).amount
+    return ceil(numberOfReactions(amount.toDouble(), reaction)).toInt() * reaction.inputChemicals.get(0).amount
 }
 
-private fun numberOfReactions(amount: Int, reaction: Reaction) =
-        Math.ceil(amount.toDouble() / reaction.outputChemical.amount.toDouble()).toInt()
-
-private fun hasOreChemical(reaction: Reaction) =
-        reaction.inputChemicals.filter { it.name.equals(oreIdentifier) }.isNotEmpty()
+private fun numberOfReactions(amount: Double, reaction: Reaction) =
+        amount / reaction.outputChemical.amount.toDouble()
 
 
-class Chemical(val amount: Int, val name: String)
-class Reaction(val inputChemicals: List<Chemical>, val outputChemical: Chemical)
+data class Chemical(val amount: Int, val name: String)
+data class Reaction(val inputChemicals: List<Chemical>, val outputChemical: Chemical)
 
 fun parseReactions(inputReactions: String): ArrayList<Reaction> {
 
     val reactionsSplitted = inputReactions.split("\n")
     val regex = "(.*) => (.*)".toRegex()
-    val reactions = ArrayList<Reaction>();
+    val reactions = ArrayList<Reaction>()
     for (reactionSplitted in reactionsSplitted) {
         val (input, output) = regex.matchEntire(reactionSplitted)!!.destructured
 
