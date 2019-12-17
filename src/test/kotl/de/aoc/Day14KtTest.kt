@@ -20,20 +20,13 @@ class Day14KtTest {
 
     @Test
     fun day14b() {
-        println(82892753-75120192)
-        println(1000000000000L / 13312L)
-        println(1000000000000000000L / 13312L)
-        println(75120192307692*13312L+4096)
-
-        var ore = 1000000000000L
-        var res = ore.toDouble() % 13312L
-        println(82892753L * 13312L)
-        println(1103468327936L - ore)
-        println(5586022L * 180697L)
-        println(2210736L * 460664L)
+        val reactionsInput = File("inputDay14").inputStream().bufferedReader().use { it.readText() }
 
 
+        val amountOfOre = day14b(reactionsInput)
+        assertEquals(0, amountOfOre)
     }
+
 
     @Test
     fun day14aExampleOne() {
@@ -73,10 +66,6 @@ class Day14KtTest {
 
         val amountOfOre = day14two(reactionsInput)
         assertEquals(165, amountOfOre)
-        //323 158
-        //480 157
-        //638 158
-        //796 158
     }
 
 
@@ -84,7 +73,7 @@ class Day14KtTest {
     fun day14aExampleThree() {
         val reactionsInput = "157 ORE => 5 NZVS\n" +
                 "165 ORE => 6 DCFZ\n" +
-                "44 XJWVT, 5 KHKGT, 1 QDVJ, 29 NZVS, 9 GPVTF, 48 HKGWZ => 1 FUEL\n" +
+                "44 XJWVT, 5 KHKGT, 1 QDVJ, 29 NZVS, 9 GPVTF, 48 HKGWZ => 82892753 FUEL\n" +
                 "12 HKGWZ, 1 GPVTF, 8 PSHF => 9 QDVJ\n" +
                 "179 ORE => 7 PSHF\n" +
                 "177 ORE => 5 HKGWZ\n" +
@@ -93,10 +82,6 @@ class Day14KtTest {
                 "3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT"
 
         val amountOfOre = day14two(reactionsInput)
-        //1205354336
-        //1584077485
-        println("huhu" + (25590 - 13312))
-        println(37025 - 25590)
         assertEquals(13312, amountOfOre)
     }
 
@@ -105,7 +90,7 @@ class Day14KtTest {
     fun day14aExampleFour() {
         val reactionsInput = "2 VPVL, 7 FWMGM, 2 CXFTF, 11 MNCFX => 1 STKFG\n" +
                 "17 NVRVD, 3 JNWZP => 8 VPVL\n" +
-                "53 STKFG, 6 MNCFX, 46 VJHF, 81 HVMC, 68 CXFTF, 25 GNMV => 1 FUEL\n" +
+                "53 STKFG, 6 MNCFX, 46 VJHF, 81 HVMC, 68 CXFTF, 25 GNMV => 5586022 FUEL\n" +
                 "22 VJHF, 37 MNCFX => 5 FWMGM\n" +
                 "139 ORE => 4 NVRVD\n" +
                 "144 ORE => 7 JNWZP\n" +
